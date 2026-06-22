@@ -289,9 +289,14 @@ section[data-testid="stSidebar"] { display: none !important; }
 }
 
 
-/* ── Submit button ── */
-.stButton > button {
+/* ── Submit button (both st.button AND st.form_submit_button) ── */
+.stButton > button,
+[data-testid="stFormSubmitButton"] > button,
+[data-testid="stBaseButton-secondaryFormSubmit"],
+[kind="secondaryFormSubmit"],
+button[kind="secondaryFormSubmit"] {
     background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
     color: #F5F0E8 !important;
     border: 2px solid #0A0A0A !important;
     border-radius: 0 !important;
@@ -305,9 +310,110 @@ section[data-testid="stSidebar"] { display: none !important; }
     transition: all 0.12s ease !important;
     margin-top: 0.5rem !important;
 }
-.stButton > button:hover {
+.stButton > button:hover,
+[data-testid="stFormSubmitButton"] > button:hover {
     background: #F5F0E8 !important;
+    background-color: #F5F0E8 !important;
     color: #0A0A0A !important;
+}
+
+/* ── Dataframe light theme ── */
+[data-testid="stDataFrame"] iframe,
+[data-testid="stDataFrame"] > div {
+    background: #FDFAF4 !important;
+    border: 1.5px solid #0A0A0A !important;
+    border-radius: 0 !important;
+}
+
+/* ── Slider label + value ── */
+[data-testid="stSlider"] label,
+[data-testid="stSlider"] p {
+    color: #0A0A0A !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+}
+[data-testid="stSlider"] [data-testid="stTickBarMin"],
+[data-testid="stSlider"] [data-testid="stTickBarMax"] {
+    color: #888 !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.68rem !important;
+}
+
+/* ── Decision tree styled block ── */
+.tree-container {
+    background: #FDFAF4;
+    border: 1.5px solid #0A0A0A;
+    padding: 1.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.9;
+    overflow-x: auto;
+}
+.tree-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+.tree-connector {
+    color: #C8BFA8;
+    user-select: none;
+    min-width: 14px;
+}
+.tree-rule {
+    color: #0A0A0A;
+    font-weight: 500;
+}
+.tree-rule strong { font-weight: 700; color: #0A0A0A; }
+.tree-leaf-approved {
+    background: #0A0A0A;
+    color: #F5F0E8;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.5rem;
+    font-weight: 700;
+}
+.tree-leaf-rejected {
+    background: #F5F0E8;
+    color: #0A0A0A;
+    border: 1.5px solid #0A0A0A;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.5rem;
+    font-weight: 700;
+}
+
+/* ── Stat box (dataset tab) ── */
+.stat-box-row {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 1px;
+    border: 1.5px solid #0A0A0A;
+    background: #0A0A0A;
+    margin-bottom: 2rem;
+}
+.stat-box {
+    background: #FDFAF4;
+    padding: 1.2rem 1.5rem;
+}
+.stat-box-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0A0A0A;
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+.stat-box-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #888;
 }
 
 /* ── Result verdict ── */
@@ -769,36 +875,89 @@ with st.container():
         st.bar_chart(feat_df.set_index("Feature")["Weight"])
 
     with tab2:
-        st.markdown("")
-        st.code(tree_rules, language="text")
+        st.markdown('<div class="section-label" style="margin:1.2rem 0 1rem;">How the model makes decisions — read top to bottom</div>', unsafe_allow_html=True)
+        # Parse tree rules into styled HTML
+        def render_tree(rules_text):
+            lines = rules_text.strip().split('\n')
+            html = '<div class="tree-container">'
+            for line in lines:
+                raw = line
+                # count leading pipe/space chars for indent
+                stripped = raw.lstrip()
+                leading  = raw[: len(raw) - len(stripped)]
+                depth    = leading.count('|')
+                indent_px = depth * 20
+                connector = raw.replace(stripped, '').replace('|', '┊').replace('-', '') if depth else ''
+                if 'class: 1' in stripped:
+                    inner = '<span class="tree-leaf-approved">✓ APPROVED</span>'
+                elif 'class: 0' in stripped:
+                    inner = '<span class="tree-leaf-rejected">✕ REJECTED</span>'
+                else:
+                    # highlight the feature name
+                    cond = stripped.lstrip('|- ')
+                    parts = cond.split(' ', 1)
+                    feat  = f'<strong>{parts[0]}</strong>' if parts else cond
+                    rest  = ' ' + parts[1] if len(parts) > 1 else ''
+                    inner = f'<span class="tree-rule">{feat}{rest}</span>'
+                conn_html = f'<span class="tree-connector" style="padding-left:{indent_px}px">{'└─' if '|---' in raw else '┊ '}</span>'
+                html += f'<div class="tree-line">{conn_html}{inner}</div>'
+            html += '</div>'
+            return html
+        st.markdown(render_tree(tree_rules), unsafe_allow_html=True)
 
     with tab3:
-        st.markdown("")
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Records", f"{total:,}")
-        c2.metric("Approved", f"{approved:,}")
-        c3.metric("Rejected", f"{rejected:,}")
-        c4.metric("Rate", f"{approved/total*100:.1f}%")
+        st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
+        # Custom stat boxes — no st.metric() blue tint
+        st.markdown(f"""
+        <div class="stat-box-row">
+          <div class="stat-box">
+            <span class="stat-box-num">{total:,}</span>
+            <span class="stat-box-label">Total Records</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-num">{approved:,}</span>
+            <span class="stat-box-label">Approved</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-num">{rejected:,}</span>
+            <span class="stat-box-label">Rejected</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-num">{approved/total*100:.1f}%</span>
+            <span class="stat-box-label">Approval Rate</span>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.markdown("---")
         left_c, right_c = st.columns(2)
         with left_c:
-            st.markdown("**CIBIL Score Distribution**")
+            st.markdown('<div class="section-label">CIBIL Score Distribution by Status</div>', unsafe_allow_html=True)
             cibil_chart = (
                 df.groupby(["cibil_score", "loan_status"])
                   .size().unstack(fill_value=0)
             )
             st.line_chart(cibil_chart, use_container_width=True)
         with right_c:
-            st.markdown("**Loan Amount by Status**")
+            st.markdown('<div class="section-label">Loan Amount by Outcome</div>', unsafe_allow_html=True)
             df2   = df.copy()
             bins  = pd.cut(df2["loan_amount"], bins=12)
             chart = df2.groupby([bins, "loan_status"]).size().unstack(fill_value=0)
             chart.index = chart.index.astype(str)
             st.bar_chart(chart, use_container_width=True)
 
-        n = st.slider("Sample rows", 5, 100, 15)
-        st.dataframe(df.head(n), use_container_width=True, hide_index=True)
+        st.markdown('<div class="section-label" style="margin-top:1.5rem">Raw Dataset Sample</div>', unsafe_allow_html=True)
+        n = st.slider("Number of rows", min_value=5, max_value=100, value=15, step=5)
+        st.dataframe(
+            df.head(n).style.set_properties(**{
+                'background-color': '#FDFAF4',
+                'color': '#0A0A0A',
+                'border-color': '#D0C8B8',
+                'font-family': 'Space Grotesk, sans-serif',
+                'font-size': '13px',
+            }),
+            use_container_width=True,
+            hide_index=True,
+        )
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FOOTER
