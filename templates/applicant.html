@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if not result %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Loan Application Form</h2>
+    <form method="POST" action="/" class="grid grid-cols-2">
+        <div class="form-group">
+            <label class="form-label">Annual Income (₹)</label>
+            <input type="number" name="income_annum" value="500000" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Requested Loan Amount (₹)</label>
+            <input type="number" name="loan_amount" value="1000000" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Loan Term (Months)</label>
+            <input type="number" name="loan_term" value="12" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">CIBIL Score</label>
+            <input type="number" name="cibil_score" value="700" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Education</label>
+            <select name="education" class="form-control">
+                <option value=" Graduate">Graduate</option>
+                <option value=" Not Graduate">Not Graduate</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Self Employed</label>
+            <select name="self_employed" class="form-control">
+                <option value=" No">No</option>
+                <option value=" Yes">Yes</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Dependents</label>
+            <input type="number" name="no_of_dependents" value="0" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Bank Asset Value (₹)</label>
+            <input type="number" name="bank_asset_value" value="0" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Residential Assets (₹)</label>
+            <input type="number" name="residential_assets_value" value="0" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Commercial Assets (₹)</label>
+            <input type="number" name="commercial_assets_value" value="0" class="form-control" required>
+        </div>
+        
+        <div style="grid-column: 1 / -1; margin-top: 1rem;">
+            <button type="submit" class="btn btn-primary btn-block">Check Approval Status</button>
+        </div>
+    </form>
+</div>
+{% else %}
+<div class="card">
+    <div class="result-box {% if result.status == 'Approved' %}result-approved{% else %}result-rejected{% endif %}">
+        <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">
+            Application {% if result.status == 'Approved' %}Approved!{% else %}Rejected{% endif %}
+        </h2>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: var(--primary);">
+            Decision Explanation
+        </h3>
+        <p style="color: var(--text-light); margin-bottom: 1rem;">
+            Our rule-based system evaluated your application. Here is the exact logical path that led to this decision:
+        </p>
+        
+        <div class="reason-list">
+            {% for rule in result.decision_path %}
+            <div class="reason-item">
+                <span style="background: var(--secondary); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 600; margin-right: 1rem; font-size: 0.9rem;">Step {{ loop.index }}</span>
+                <span style="font-size: 1.05rem;">{{ rule }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="/" class="btn btn-secondary">Evaluate Another Application</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

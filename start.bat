@@ -1,0 +1,13 @@
+@echo off
+echo Starting Explainable Loan Rejection Simulator...
+
+echo Activating virtual environment...
+call venv\Scripts\activate
+
+echo Installing any missing dependencies...
+pip install -r requirements.txt
+
+echo Starting the Flask web server...
+python app.py
+
+pause
