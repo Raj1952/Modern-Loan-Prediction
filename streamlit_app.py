@@ -5,111 +5,404 @@ import os
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Explainable Loan Simulator",
-    page_icon="🏦",
+    page_title="LoanIQ — Explainable Loan Decisions",
+    page_icon="◈",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
-# ── CSS ────────────────────────────────────────────────────────────────────────
+# ── Neo-Brutalist CSS (21st.dev inspired) ──────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
-.stApp {
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, [class*="css"], .stApp {
+    font-family: 'Space Grotesk', sans-serif !important;
+    background: #F5F0E8 !important;
+    color: #0A0A0A !important;
 }
 
-.hero-header {
-    background: linear-gradient(90deg, #6c63ff 0%, #a855f7 60%, #ec4899 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 2.4rem;
-    font-weight: 800;
-    margin-bottom: 0.2rem;
-}
+/* Kill default Streamlit padding */
+.block-container { padding: 0 !important; max-width: 100% !important; }
+section[data-testid="stSidebar"] { display: none !important; }
+#MainMenu, footer, header { visibility: hidden !important; }
 
-.hero-sub { color: #9d9dc7; font-size: 1rem; margin-bottom: 1rem; }
-
-.result-approved {
-    background: linear-gradient(135deg, #064e3b, #065f46);
-    border: 2px solid #10b981;
-    border-radius: 18px;
-    padding: 1.8rem;
-    text-align: center;
-    margin-bottom: 1rem;
+/* ── Top nav bar ── */
+.nav-bar {
+    background: #0A0A0A;
+    padding: 0 2.5rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #0A0A0A;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
-.result-rejected {
-    background: linear-gradient(135deg, #7f1d1d, #991b1b);
-    border: 2px solid #ef4444;
-    border-radius: 18px;
-    padding: 1.8rem;
-    text-align: center;
-    margin-bottom: 1rem;
-}
-.approved-title { font-size: 2rem; font-weight: 800; color: #34d399; }
-.rejected-title { font-size: 2rem; font-weight: 800; color: #f87171; }
-
-.step-pill {
-    background: rgba(108,99,255,0.15);
-    border: 1px solid rgba(108,99,255,0.4);
-    border-radius: 10px;
-    padding: 0.6rem 1rem;
-    margin-bottom: 0.45rem;
-    font-size: 0.95rem;
-    color: #c4b5fd;
-}
-.step-num {
-    background: rgba(108,99,255,0.4);
-    padding: 0.15rem 0.55rem;
-    border-radius: 5px;
+.nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
     font-weight: 700;
-    font-size: 0.82rem;
-    margin-right: 0.6rem;
+    color: #F5F0E8;
+    letter-spacing: 0.05em;
 }
-.sec-header {
-    font-size: 1.05rem;
+.nav-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: #888;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* ── Hero ── */
+.hero {
+    border-bottom: 2px solid #0A0A0A;
+    padding: 4rem 2.5rem 3rem;
+    background: #F5F0E8;
+}
+.hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 2px;
+    background: #0A0A0A;
+}
+.hero-title {
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
     font-weight: 700;
-    color: #c4b5fd;
-    border-left: 3px solid #6c63ff;
-    padding-left: 0.7rem;
-    margin: 1.1rem 0 0.5rem;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: #0A0A0A;
+    margin-bottom: 1.5rem;
+}
+.hero-title span {
+    display: block;
+    color: #0A0A0A;
+}
+.hero-title .accent {
+    color: transparent;
+    -webkit-text-stroke: 2px #0A0A0A;
+}
+.hero-desc {
+    font-size: 1rem;
+    color: #555;
+    max-width: 480px;
+    line-height: 1.6;
 }
 
-section[data-testid="stSidebar"] {
-    background: rgba(15,12,41,0.9) !important;
-    border-right: 1px solid rgba(255,255,255,0.07);
+/* ── Stat strip ── */
+.stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 2px solid #0A0A0A;
+    background: #0A0A0A;
+}
+.stat-item {
+    padding: 1.5rem 2rem;
+    border-right: 1px solid #222;
+    color: #F5F0E8;
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+.stat-label {
+    font-size: 0.72rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
+/* ── Main layout ── */
+.main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 200px);
+    border-bottom: 2px solid #0A0A0A;
+}
+.form-panel {
+    border-right: 2px solid #0A0A0A;
+    padding: 2.5rem;
+}
+.result-panel {
+    padding: 2.5rem;
+    background: #F5F0E8;
+}
+
+/* ── Section labels ── */
+.section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: #999;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #D0C8B8;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.section-label::before {
+    content: '//';
+    color: #CCC;
+}
+
+/* ── Field groups ── */
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    border: 1.5px solid #0A0A0A;
+    margin-bottom: 1rem;
+    background: #0A0A0A;
+}
+.field-cell {
+    background: #F5F0E8;
+    padding: 0.8rem 1rem;
+}
+.field-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #888;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 0.25rem;
+}
+
+/* Streamlit input overrides */
+.stNumberInput input, .stSelectbox > div > div, .stSlider {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1.5px solid #CCC !important;
+    border-radius: 0 !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.9rem !important;
+    color: #0A0A0A !important;
+    padding: 0.2rem 0 !important;
+    box-shadow: none !important;
+}
+.stNumberInput input:focus {
+    border-bottom-color: #0A0A0A !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.stSelectbox > div > div {
+    font-size: 0.85rem !important;
+}
+
+/* Slider track */
+.stSlider [data-baseweb="slider"] div[role="slider"] {
+    background: #0A0A0A !important;
+    border-radius: 0 !important;
+    width: 14px !important;
+    height: 14px !important;
+}
+[data-testid="stSlider"] > div > div > div > div {
+    background: #0A0A0A !important;
+}
+
+/* ── Submit button ── */
+.stButton > button {
+    background: #0A0A0A !important;
+    color: #F5F0E8 !important;
+    border: 2px solid #0A0A0A !important;
+    border-radius: 0 !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    padding: 0.85rem 2rem !important;
+    width: 100% !important;
+    font-weight: 700 !important;
+    transition: all 0.12s ease !important;
+    margin-top: 0.5rem !important;
+}
+.stButton > button:hover {
+    background: #F5F0E8 !important;
+    color: #0A0A0A !important;
+}
+
+/* ── Result verdict ── */
+.verdict-approved {
+    border: 2px solid #0A0A0A;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    background: #0A0A0A;
+    color: #F5F0E8;
+    position: relative;
+}
+.verdict-rejected {
+    border: 2px solid #0A0A0A;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    background: #F5F0E8;
+    color: #0A0A0A;
+    position: relative;
+}
+.verdict-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    opacity: 0.6;
+}
+.verdict-text {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+.verdict-sub {
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    opacity: 0.7;
+    line-height: 1.5;
+}
+
+/* ── Decision steps ── */
+.steps-container {
+    border: 1.5px solid #D0C8B8;
+    background: #FDFAF4;
+}
+.step-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid #E8E2D6;
+}
+.step-row:last-child { border-bottom: none; }
+.step-index {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: #999;
+    min-width: 36px;
+    padding-top: 2px;
+    letter-spacing: 0.1em;
+}
+.step-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: #0A0A0A;
+    line-height: 1.5;
+}
+
+/* ── Metric row ── */
+.metric-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    border: 1.5px solid #0A0A0A;
+    background: #0A0A0A;
+    margin-top: 1.5rem;
+}
+.metric-cell {
+    background: #F5F0E8;
+    padding: 1rem 1.2rem;
+}
+.metric-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0A0A0A;
+    display: block;
+    margin-bottom: 0.15rem;
+}
+.metric-key {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #999;
+}
+
+/* ── Footer ── */
+.site-footer {
+    border-top: 2px solid #0A0A0A;
+    padding: 1.2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0A0A0A;
+}
+.footer-left {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: #666;
+    letter-spacing: 0.1em;
+}
+.footer-right {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: #444;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* ── Tabs (Explorer section) ── */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 6px;
-    background: rgba(255,255,255,0.04);
-    border-radius: 10px;
-    padding: 4px;
+    gap: 0 !important;
+    background: transparent !important;
+    border-bottom: 2px solid #0A0A0A !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 0 !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    padding: 0.8rem 1.5rem !important;
+    border-right: 1.5px solid #0A0A0A !important;
+    color: #666 !important;
+    background: #F5F0E8 !important;
 }
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(90deg,#6c63ff,#a855f7) !important;
-    color: white !important;
+    background: #0A0A0A !important;
+    color: #F5F0E8 !important;
+    font-weight: 700 !important;
 }
 
-.stButton > button {
-    background: linear-gradient(90deg,#6c63ff,#a855f7);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 1rem;
-    width: 100%;
+/* ── Code block ── */
+.stCodeBlock {
+    border: 1.5px solid #0A0A0A !important;
+    border-radius: 0 !important;
 }
-.stButton > button:hover { opacity: 0.87; }
+code {
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.78rem !important;
+}
 
-#MainMenu, footer { visibility: hidden; }
+/* Hide Streamlit frame elements */
+[data-testid="stDecoration"] { display: none; }
+[data-testid="collapsedControl"] { display: none !important; }
+.stSpinner > div { border-color: #0A0A0A transparent transparent !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Inline Model (no backend import needed) ────────────────────────────────────
+# ── Model (inlined) ────────────────────────────────────────────────────────────
 from sklearn.tree import DecisionTreeClassifier, export_text
 from sklearn.preprocessing import LabelEncoder
 
@@ -127,16 +420,13 @@ class LoanModel:
             df = df.drop("loan_id", axis=1)
         for col in df.select_dtypes(include=["object"]).columns:
             df[col] = df[col].str.strip()
-
         X = df.drop("loan_status", axis=1)
         y = df["loan_status"].apply(lambda x: 1 if x == "Approved" else 0)
         self.feature_names = X.columns.tolist()
-
         for col in X.select_dtypes(include=["object"]).columns:
             le = LabelEncoder()
             X[col] = le.fit_transform(X[col])
             self.label_encoders[col] = le
-
         self.model.fit(X, y)
         self.is_trained = True
         acc = self.model.score(X, y)
@@ -155,13 +445,11 @@ class LoanModel:
         X = inp[self.feature_names]
         pred = self.model.predict(X)[0]
         status = "Approved" if pred == 1 else "Rejected"
-
         node_ind = self.model.decision_path(X)
         leaf_id  = self.model.apply(X)[0]
         feat     = self.model.tree_.feature
         thresh   = self.model.tree_.threshold
         nodes    = node_ind.indices[node_ind.indptr[0]:node_ind.indptr[1]]
-
         reasons = []
         for nid in nodes:
             if nid == leaf_id:
@@ -174,19 +462,16 @@ class LoanModel:
                 cls = self.label_encoders[fname].classes_
                 if int(fval) < len(cls):
                     disp = cls[int(fval)]
-            if fval <= tval:
-                reasons.append(f"{fname} ({disp}) ≤ {tval:.1f}")
-            else:
-                reasons.append(f"{fname} ({disp}) > {tval:.1f}")
+            op = "≤" if fval <= tval else ">"
+            reasons.append(f"{fname}  {op}  {tval:.1f}  (yours: {disp})")
         return status, reasons
 
-# ── Cache: load data & train ───────────────────────────────────────────────────
-@st.cache_resource(show_spinner="🤖 Training decision tree model…")
+# ── Cache ──────────────────────────────────────────────────────────────────────
+@st.cache_resource(show_spinner=False)
 def get_model_and_data():
     base = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(base, "data", "loan_approval_dataset.csv")
     df = pd.read_csv(path)
-    # Strip column names and all string values so downstream code works cleanly
     df.columns = df.columns.str.strip()
     for col in df.select_dtypes(include=["object"]).columns:
         df[col] = df[col].str.strip()
@@ -196,63 +481,125 @@ def get_model_and_data():
     acc, rules = model.train(df)
     return model, df, acc, rules
 
-model, df, accuracy, tree_rules = get_model_and_data()
+with st.spinner(""):
+    model, df, accuracy, tree_rules = get_model_and_data()
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("## 🏦 Loan Simulator")
-    st.markdown("---")
-    st.metric("Model Accuracy", f"{accuracy*100:.1f}%")
-    st.metric("Algorithm", "Decision Tree")
-    st.metric("Max Depth",  "4 levels")
-    st.markdown("---")
-    total    = len(df)
-    approved = (df["loan_status"].str.strip() == "Approved").sum()
-    rejected = total - approved
-    st.metric("Dataset Size", f"{total:,}")
-    st.metric("Approved",     f"{approved:,}  ({approved/total*100:.1f}%)")
-    st.metric("Rejected",     f"{rejected:,}  ({rejected/total*100:.1f}%)")
-    st.markdown("---")
-    st.caption("Explainable AI · Decision Tree · Loan Prediction")
+total    = len(df)
+approved = (df["loan_status"] == "Approved").sum()
+rejected = total - approved
 
-# ── Header ─────────────────────────────────────────────────────────────────────
-st.markdown('<div class="hero-header">🏦 Explainable Loan Rejection Simulator</div>', unsafe_allow_html=True)
-st.markdown('<div class="hero-sub">AI-powered loan decisions with transparent, step-by-step reasoning.</div>', unsafe_allow_html=True)
+# ══════════════════════════════════════════════════════════════════════════════
+# NAV BAR
+# ══════════════════════════════════════════════════════════════════════════════
+st.markdown("""
+<div class="nav-bar">
+  <span class="nav-logo">◈ LOANIQ</span>
+  <span class="nav-tag">Explainable AI · Decision Tree</span>
+</div>
+""", unsafe_allow_html=True)
 
-# ── Tabs ───────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📋  Loan Application", "🌳  Explainability & Rules", "📊  Dataset Explorer"])
+# ══════════════════════════════════════════════════════════════════════════════
+# HERO
+# ══════════════════════════════════════════════════════════════════════════════
+st.markdown(f"""
+<div class="hero">
+  <div class="hero-eyebrow">AI-powered loan analysis</div>
+  <div class="hero-title">
+    <span>KNOW WHY</span>
+    <span class="accent">YOUR LOAN</span>
+    <span>WAS REJECTED.</span>
+  </div>
+  <p class="hero-desc">
+    Transparent, rule-based decisions. No black boxes. 
+    Every outcome traced to its exact logical path — readable by anyone.
+  </p>
+</div>
+""", unsafe_allow_html=True)
 
-# ════════════════════════════════════════════════════════════════════════════════
-# TAB 1
-# ════════════════════════════════════════════════════════════════════════════════
-with tab1:
-    st.markdown("### Fill in the Applicant Details")
+# ══════════════════════════════════════════════════════════════════════════════
+# STAT STRIP
+# ══════════════════════════════════════════════════════════════════════════════
+st.markdown(f"""
+<div class="stat-strip">
+  <div class="stat-item">
+    <span class="stat-num">{total:,}</span>
+    <span class="stat-label">Training Records</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">{accuracy*100:.1f}%</span>
+    <span class="stat-label">Model Accuracy</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">{approved/total*100:.0f}%</span>
+    <span class="stat-label">Approval Rate</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">4</span>
+    <span class="stat-label">Decision Levels</span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-    with st.form("loan_form"):
-        c1, c2 = st.columns(2)
+# ══════════════════════════════════════════════════════════════════════════════
+# MAIN GRID: FORM  |  RESULT
+# ══════════════════════════════════════════════════════════════════════════════
+left_col, right_col = st.columns([1, 1], gap="small")
 
-        with c1:
-            st.markdown('<div class="sec-header">💰 Financial Profile</div>', unsafe_allow_html=True)
-            income       = st.number_input("Annual Income (₹)",        min_value=0, max_value=100_000_000, value=500_000,   step=10_000)
-            loan_amount  = st.number_input("Loan Amount (₹)",          min_value=0, max_value=200_000_000, value=1_000_000, step=10_000)
-            loan_term    = st.number_input("Loan Term (months)",        min_value=1, max_value=360,         value=12)
-            cibil        = st.slider(      "CIBIL Score",               300, 900, 700,
-                                           help="Scores above 550 strongly improve approval odds.")
+with left_col:
+    st.markdown('<div class="section-label">Applicant Information</div>', unsafe_allow_html=True)
 
-        with c2:
-            st.markdown('<div class="sec-header">👤 Personal Details</div>', unsafe_allow_html=True)
-            education     = st.selectbox("Education",     ["Graduate", "Not Graduate"])
+    with st.form("loan_form", clear_on_submit=False):
+
+        st.markdown('<div class="section-label">Financial Profile</div>', unsafe_allow_html=True)
+        f1, f2 = st.columns(2)
+        with f1:
+            income = st.number_input("Annual Income (₹)", min_value=0, max_value=100_000_000,
+                                     value=500_000, step=10_000, label_visibility="visible")
+        with f2:
+            loan_amount = st.number_input("Loan Amount (₹)", min_value=0, max_value=200_000_000,
+                                          value=1_000_000, step=10_000)
+
+        f3, f4 = st.columns(2)
+        with f3:
+            loan_term = st.number_input("Loan Term (months)", min_value=1, max_value=360, value=12)
+        with f4:
+            cibil = st.number_input("CIBIL Score", min_value=300, max_value=900, value=700)
+
+        st.markdown('<div class="section-label">Profile & Employment</div>', unsafe_allow_html=True)
+        p1, p2, p3 = st.columns(3)
+        with p1:
+            education = st.selectbox("Education", ["Graduate", "Not Graduate"])
+        with p2:
             self_employed = st.selectbox("Self Employed", ["No", "Yes"])
-            dependents    = st.number_input("Dependents", min_value=0, max_value=20, value=0)
-            st.markdown('<div class="sec-header">🏠 Assets</div>', unsafe_allow_html=True)
-            bank_asset    = st.number_input("Bank Asset Value (₹)",        min_value=0, value=0, step=10_000)
-            res_asset     = st.number_input("Residential Asset Value (₹)", min_value=0, value=0, step=10_000)
-            com_asset     = st.number_input("Commercial Asset Value (₹)",  min_value=0, value=0, step=10_000)
-            lux_asset     = st.number_input("Luxury Asset Value (₹)",      min_value=0, value=0, step=10_000)
+        with p3:
+            dependents = st.number_input("Dependents", min_value=0, max_value=20, value=0)
 
-        submitted = st.form_submit_button("🔍  Check Approval Status", use_container_width=True)
+        st.markdown('<div class="section-label">Asset Portfolio</div>', unsafe_allow_html=True)
+        a1, a2 = st.columns(2)
+        with a1:
+            bank_asset = st.number_input("Bank Assets (₹)", min_value=0, value=0, step=10_000)
+            com_asset  = st.number_input("Commercial Assets (₹)", min_value=0, value=0, step=10_000)
+        with a2:
+            res_asset  = st.number_input("Residential Assets (₹)", min_value=0, value=0, step=10_000)
+            lux_asset  = st.number_input("Luxury Assets (₹)", min_value=0, value=0, step=10_000)
 
-    if submitted:
+        submitted = st.form_submit_button("→  ANALYSE APPLICATION", use_container_width=True)
+
+with right_col:
+    st.markdown('<div class="section-label">Decision Output</div>', unsafe_allow_html=True)
+
+    if not submitted:
+        st.markdown("""
+        <div style="border:1.5px dashed #C8BFA8;padding:3rem 2rem;text-align:center;color:#AAA;">
+            <div style="font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;
+                        text-transform:uppercase;margin-bottom:0.8rem;">Awaiting Input</div>
+            <div style="font-size:2.5rem;margin-bottom:0.8rem;">◈</div>
+            <div style="font-size:0.85rem;line-height:1.6;color:#BBB;">
+                Fill the form and submit<br>to see your decision path.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
         form_data = {
             "income_annum":             income,
             "loan_amount":              loan_amount,
@@ -266,105 +613,132 @@ with tab1:
             "commercial_assets_value":  com_asset,
             "luxury_assets_value":      lux_asset,
         }
-
-        with st.spinner("Evaluating application…"):
-            status, reasons = model.predict(form_data)
-
-        st.markdown("---")
+        status, reasons = model.predict(form_data)
         is_approved = status == "Approved"
 
         if is_approved:
-            st.markdown(
-                '<div class="result-approved">'
-                '<div class="approved-title">✅ Application Approved!</div>'
-                '<p style="color:#a7f3d0;margin-top:0.4rem">Congratulations! Your profile meets the lending criteria.</p>'
-                '</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="verdict-approved">
+              <div class="verdict-badge">◈ Decision Output</div>
+              <div class="verdict-text">APPROVED</div>
+              <div class="verdict-sub">
+                Your application satisfies the lending criteria.<br>
+                {len(reasons)} decision rule(s) evaluated.
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            st.markdown(
-                '<div class="result-rejected">'
-                '<div class="rejected-title">❌ Application Rejected</div>'
-                '<p style="color:#fca5a5;margin-top:0.4rem">Your profile did not meet the required criteria.</p>'
-                '</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="verdict-rejected">
+              <div class="verdict-badge">◈ Decision Output</div>
+              <div class="verdict-text">REJECTED</div>
+              <div class="verdict-sub">
+                Your application did not meet the required criteria.<br>
+                {len(reasons)} decision rule(s) evaluated.
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        st.markdown("#### 🧠 Decision Path — Step by Step")
+        st.markdown('<div class="section-label">Decision Trace — Rule Path</div>', unsafe_allow_html=True)
+        steps_html = '<div class="steps-container">'
         for i, step in enumerate(reasons, 1):
-            icon = "✅" if is_approved else "⚠️"
-            st.markdown(
-                f'<div class="step-pill"><span class="step-num">Step {i}</span>{icon} {step}</div>',
-                unsafe_allow_html=True)
+            steps_html += f"""
+            <div class="step-row">
+              <span class="step-index">S{i:02d}</span>
+              <span class="step-text">{step}</span>
+            </div>"""
+        steps_html += '</div>'
+        st.markdown(steps_html, unsafe_allow_html=True)
 
-        st.markdown("#### 📊 Key Metrics")
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("CIBIL Score",   cibil,          delta="Good" if cibil>700 else ("Fair" if cibil>550 else "Poor"))
-        m2.metric("Loan Amount",   f"₹{loan_amount:,}")
-        m3.metric("Annual Income", f"₹{income:,}")
-        m4.metric("Total Assets",  f"₹{bank_asset+res_asset+com_asset+lux_asset:,}")
+        total_assets = bank_asset + res_asset + com_asset + lux_asset
+        cibil_status = "GOOD" if cibil > 700 else ("FAIR" if cibil > 550 else "POOR")
+        st.markdown(f"""
+        <div class="metric-row">
+          <div class="metric-cell">
+            <span class="metric-val">{cibil}</span>
+            <span class="metric-key">CIBIL — {cibil_status}</span>
+          </div>
+          <div class="metric-cell">
+            <span class="metric-val">₹{loan_amount/100000:.1f}L</span>
+            <span class="metric-key">Loan Amount</span>
+          </div>
+          <div class="metric-cell">
+            <span class="metric-val">₹{income/100000:.1f}L</span>
+            <span class="metric-key">Annual Income</span>
+          </div>
+          <div class="metric-cell">
+            <span class="metric-val">₹{total_assets/100000:.1f}L</span>
+            <span class="metric-key">Total Assets</span>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
 
+# ══════════════════════════════════════════════════════════════════════════════
+# DATA EXPLORER (below the fold)
+# ══════════════════════════════════════════════════════════════════════════════
+st.markdown("""
+<div style="border-top:2px solid #0A0A0A;border-bottom:2px solid #0A0A0A;
+            padding:1rem 2.5rem;background:#0A0A0A;">
+  <span style="font-family:'Space Mono',monospace;font-size:0.7rem;
+               letter-spacing:0.2em;text-transform:uppercase;color:#888;">
+    // Data Explorer & Model Internals
+  </span>
+</div>
+""", unsafe_allow_html=True)
 
-# ════════════════════════════════════════════════════════════════════════════════
-# TAB 2
-# ════════════════════════════════════════════════════════════════════════════════
-with tab2:
-    st.markdown("### 🌳 Global Decision Tree Rules")
-    with st.expander("📜 Full Decision Tree (max depth = 4)", expanded=True):
+with st.container():
+    tab1, tab2, tab3 = st.tabs(["FEATURE WEIGHTS", "DECISION RULES", "DATASET"])
+
+    with tab1:
+        st.markdown("")
+        imps = model.model.feature_importances_
+        feat_df = (
+            pd.DataFrame({"Feature": model.feature_names, "Weight": (imps * 100).round(2)})
+            .sort_values("Weight", ascending=False)
+            .reset_index(drop=True)
+        )
+        feat_df.index = [f"F{i+1:02d}" for i in range(len(feat_df))]
+        st.dataframe(feat_df, use_container_width=True)
+        st.bar_chart(feat_df.set_index("Feature")["Weight"])
+
+    with tab2:
+        st.markdown("")
         st.code(tree_rules, language="text")
 
-    st.markdown("---")
-    st.markdown("### 📈 Feature Importances")
-    imps = model.model.feature_importances_
-    feat_df = (
-        pd.DataFrame({"Feature": model.feature_names, "Importance %": (imps * 100).round(2)})
-        .sort_values("Importance %", ascending=False)
-        .reset_index(drop=True)
-    )
-    st.dataframe(feat_df, use_container_width=True, hide_index=True)
-    st.bar_chart(feat_df.set_index("Feature")["Importance %"])
+    with tab3:
+        st.markdown("")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Records", f"{total:,}")
+        c2.metric("Approved", f"{approved:,}")
+        c3.metric("Rejected", f"{rejected:,}")
+        c4.metric("Rate", f"{approved/total*100:.1f}%")
 
-    st.markdown("---")
-    st.info("""
-**Algorithm:** Decision Tree Classifier — scikit-learn, max_depth=4
+        st.markdown("---")
+        left_c, right_c = st.columns(2)
+        with left_c:
+            st.markdown("**CIBIL Score Distribution**")
+            cibil_chart = (
+                df.groupby(["cibil_score", "loan_status"])
+                  .size().unstack(fill_value=0)
+            )
+            st.line_chart(cibil_chart, use_container_width=True)
+        with right_c:
+            st.markdown("**Loan Amount by Status**")
+            df2   = df.copy()
+            bins  = pd.cut(df2["loan_amount"], bins=12)
+            chart = df2.groupby([bins, "loan_status"]).size().unstack(fill_value=0)
+            chart.index = chart.index.astype(str)
+            st.bar_chart(chart, use_container_width=True)
 
-**Why explainable?** Every prediction follows a transparent IF-THEN rule path readable by any human.
+        n = st.slider("Sample rows", 5, 100, 15)
+        st.dataframe(df.head(n), use_container_width=True, hide_index=True)
 
-**Dataset:** Real-world Indian loan approval records with 4,269 applications.
-    """)
-
-
-# ════════════════════════════════════════════════════════════════════════════════
-# TAB 3
-# ════════════════════════════════════════════════════════════════════════════════
-with tab3:
-    st.markdown("### 📊 Dataset Explorer")
-
-    s1, s2, s3, s4 = st.columns(4)
-    total_r   = len(df)
-    appr_r    = (df["loan_status"].str.strip() == "Approved").sum()
-    s1.metric("Total Records",  f"{total_r:,}")
-    s2.metric("Approved",       f"{appr_r:,}")
-    s3.metric("Rejected",       f"{total_r - appr_r:,}")
-    s4.metric("Approval Rate",  f"{appr_r/total_r*100:.1f}%")
-
-    st.markdown("---")
-    col_a, col_b = st.columns(2)
-
-    with col_a:
-        st.markdown("#### CIBIL Score Distribution by Status")
-        cibil_chart = (
-            df.assign(loan_status=df["loan_status"].str.strip())
-              .groupby(["cibil_score", "loan_status"])
-              .size().unstack(fill_value=0)
-        )
-        st.line_chart(cibil_chart, use_container_width=True)
-
-    with col_b:
-        st.markdown("#### Loan Amount Distribution by Status")
-        df2 = df.assign(loan_status=df["loan_status"].str.strip())
-        bins = pd.cut(df2["loan_amount"], bins=15)
-        loan_chart = df2.groupby([bins, "loan_status"]).size().unstack(fill_value=0)
-        loan_chart.index = loan_chart.index.astype(str)
-        st.bar_chart(loan_chart, use_container_width=True)
-
-    st.markdown("---")
-    st.markdown("#### Raw Dataset Sample")
-    n = st.slider("Rows to show", 5, 100, 20)
-    st.dataframe(df.head(n), use_container_width=True, hide_index=True)
+# ══════════════════════════════════════════════════════════════════════════════
+# FOOTER
+# ══════════════════════════════════════════════════════════════════════════════
+st.markdown("""
+<div class="site-footer">
+  <span class="footer-left">◈ LoanIQ — Explainable Loan Decisions · Built with Decision Trees</span>
+  <span class="footer-right">sklearn · streamlit · open source</span>
+</div>
+""", unsafe_allow_html=True)
