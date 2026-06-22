@@ -317,10 +317,7 @@ with tab2:
         .sort_values("Importance %", ascending=False)
         .reset_index(drop=True)
     )
-    st.dataframe(
-        feat_df.style.background_gradient(cmap="Purples", subset=["Importance %"]),
-        use_container_width=True, hide_index=True,
-    )
+    st.dataframe(feat_df, use_container_width=True, hide_index=True)
     st.bar_chart(feat_df.set_index("Feature")["Importance %"])
 
     st.markdown("---")
