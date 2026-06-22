@@ -4,12 +4,39 @@ LoanIQ is a lightweight, interactive web application that simulates a bank's loa
 
 The app is built entirely in Python using Streamlit and scikit-learn, styled with a strict Neo-Brutalist (Swiss-grid) visual theme.
 
-![LoanIQ Interface](assets/demo.png)
-
 ## 🚀 Live URL & Repository
 
 - **Live Application:** [https://modernloanprediction.streamlit.app](https://modernloanprediction.streamlit.app)
 - **GitHub Repository:** [https://github.com/Raj1952/Modern-Loan-Prediction](https://github.com/Raj1952/Modern-Loan-Prediction)
+
+---
+
+## 📸 Visual Tour & Interface
+
+### 1. Main Dashboard (Awaiting Application)
+The home page loads into a clean Neo-Brutalist split layout. The left column displays the input form divided by raw monospace category markers (`// Financial Profile`, `// Profile & Employment`, `// Asset Portfolio`). The right column displays the awaiting input placeholder.
+
+![Main Hub](assets/hero_awaiting.png)
+
+### 2. Live Verdict & Step-by-Step Decision Trace
+Once the applicant parameters are submitted, the interface immediately renders the prediction outcome (e.g., `APPROVED` or `REJECTED`) inside a high-contrast panel, alongside an audit trail displaying the exact logical steps the Decision Tree took.
+
+![APPROVED Outcome Verdict](assets/approved_verdict.png)
+
+### 3. Model Internals & Feature Importance
+The system's underlying mathematical properties are fully exposed in the data explorer. Users can view the exact weight allocation for each feature (with CIBIL score dominating the first split).
+
+![Feature Weights tab](assets/feature_importance.png)
+
+### 4. Interactive Visual Decision Tree
+Rather than displaying a raw scikit-learn text tree or a dark-themed standard Streamlit code block, the app parses the decision paths into a custom clean Swiss-grid HTML representation with clear execution statuses.
+
+![Decision Tree Rules tab](assets/decision_rules.png)
+
+### 5. Dataset Explorer & Distribution Analytics
+The dataset explorer contains comprehensive stats on the 4,269-record corpus, showing approval trends, CIBIL score distributions, loan terms, and a dynamic raw sample explorer.
+
+![Dataset Explorer tab](assets/dataset_explorer.png)
 
 ---
 
