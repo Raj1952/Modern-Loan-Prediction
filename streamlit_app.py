@@ -186,6 +186,12 @@ def get_model_and_data():
     base = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(base, "data", "loan_approval_dataset.csv")
     df = pd.read_csv(path)
+    # Strip column names and all string values so downstream code works cleanly
+    df.columns = df.columns.str.strip()
+    for col in df.select_dtypes(include=["object"]).columns:
+        df[col] = df[col].str.strip()
+    if "loan_id" in df.columns:
+        df = df.drop("loan_id", axis=1)
     model = LoanModel()
     acc, rules = model.train(df)
     return model, df, acc, rules
